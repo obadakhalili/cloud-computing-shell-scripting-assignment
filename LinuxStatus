@@ -1,0 +1,91 @@
+#!/bin/bash
+
+function welcome_screen {
+    clear
+    echo "Welcome to LinuxStatus"
+    echo "Current date: $(date)"
+    echo "Current user: $(whoami)"
+    echo "Linux version: $(uname -r)"
+    echo ""
+    echo "Please select an option:"
+    echo "1. List running processes"
+    echo "2. Check memory status"
+    echo "3. Check hard disk status"
+    echo "4. Check if Apache is installed and its version"
+    echo "5. Exit"
+}
+
+function list_processes {
+    ps -ef
+    read -p "Press any key to go back to the main view"
+}
+
+function check_memory {
+    free -m
+    read -p "Press any key to go back to the main view"
+}
+
+function check_hard_disk {
+    df -h
+    read -p "Press any key to go back to the main view"
+}
+
+function check_apache {
+    if ! command -v apache2 >/dev/null 2>&1; then
+        echo "Apache is not installed"
+    else
+        echo "Apache version: $(apache2 -v | grep -i version | awk '{print $3}')"
+    fi
+    read -p "Press any key to go back to the main view"
+}
+
+while getopts ":prha" opt; do
+    case $opt in
+        p)
+            list_processes
+            exit
+            ;;
+        r)
+            check_memory
+            exit
+            ;;
+        h)
+            check_hard_disk
+            exit
+            ;;
+        a)
+            check_apache
+            exit
+            ;;
+        \?)
+            echo "Invalid option: $opt"
+            exit 1
+            ;;
+    esac
+done
+
+while true; do
+    welcome_screen
+    read -p "Enter your choice: " choice
+    case $choice in
+        1)
+            list_processes
+            ;;
+        2)
+            check_memory
+            ;;
+        3)
+            check_hard_disk
+            ;;
+        4)
+            check_apache
+            ;;
+        5)
+            exit
+            ;;
+        *)
+            echo "Invalid choice: $choice"
+            read -p "Press any key to continue"
+            ;;
+    esac
+done

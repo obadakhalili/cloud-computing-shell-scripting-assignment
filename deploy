@@ -1,0 +1,37 @@
+#!/bin/bash
+
+LOG_FILE="install_$(date +%Y-%m-%d).log"
+exec &> >(tee -a "$LOG_FILE")
+
+rm -rf SimpleApacheApp
+git clone https://github.com/mkassaf/SimpleApacheApp.git
+
+if ! command -v apache2 &> /dev/null; then
+  echo "Installing apache2..."
+  sudo apt-get update
+  sudo apt-get install apache2
+else
+  echo "Apache2 is already installed"
+fi
+
+echo "Disabling the default site configuration"
+sudo a2dissite 000-default.conf &> /dev/null
+
+echo "Copying files"
+sudo rm -rf /var/www/SimpleApp
+sudo cp -r SimpleApacheApp/App /var/www/SimpleApp
+sudo cp SimpleApacheApp/simpleApp.conf /etc/apache2/sites-available/
+sudo rm -rf SimpleApacheApp
+
+echo "Enabling the new site configuration"
+sudo a2ensite simpleApp.conf &> /dev/null
+sudo systemctl restart apache2 &> /dev/null
+
+echo "Website is installed and set up"
+
+if curl -s --head http://localhost | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null; then
+  echo "Website is up and running"
+else
+  echo "Website is not running"
+fi
+
